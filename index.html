@@ -365,6 +365,105 @@
   </div>
 </div>
 
+
+<script>
+/* =========================
+   FRONT-END COPY PROTECTION
+   Note: This deters casual copying only. Browser-delivered source can never
+   be made completely secret on a static GitHub Pages site.
+   ========================= */
+(function () {
+  "use strict";
+
+  // Disable context menu, text selection, drag, and common copy shortcuts.
+  document.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener("selectstart", function (e) {
+    if (!e.target.closest("input, textarea, select")) e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener("dragstart", function (e) {
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener("copy", function (e) {
+    if (!e.target.closest("input, textarea")) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  document.addEventListener("cut", function (e) {
+    if (!e.target.closest("input, textarea")) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  // Block common source / developer-tool shortcuts.
+  document.addEventListener("keydown", function (e) {
+    const key = (e.key || "").toLowerCase();
+    const ctrlOrMeta = e.ctrlKey || e.metaKey;
+
+    const blocked =
+      key === "f12" ||
+      (ctrlOrMeta && e.shiftKey && ["i", "j", "c"].includes(key)) ||
+      (ctrlOrMeta && ["u", "s", "p"].includes(key));
+
+    if (blocked) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  }, true);
+
+  // Basic DevTools-open heuristic. Not a security boundary.
+  let devToolsTriggered = false;
+  const threshold = 160;
+
+  function checkDevTools() {
+    const widthGap = window.outerWidth - window.innerWidth;
+    const heightGap = window.outerHeight - window.innerHeight;
+
+    if (widthGap > threshold || heightGap > threshold) {
+      if (!devToolsTriggered) {
+        devToolsTriggered = true;
+        document.documentElement.style.visibility = "hidden";
+        setTimeout(function () {
+          document.documentElement.style.visibility = "";
+        }, 1200);
+      }
+    } else {
+      devToolsTriggered = false;
+    }
+  }
+
+  window.addEventListener("resize", checkDevTools, { passive: true });
+  setInterval(checkDevTools, 1500);
+
+  // Add a defensive CSS layer for ordinary mouse selection/dragging.
+  const style = document.createElement("style");
+  style.textContent = `
+    body, body * {
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      user-select: none !important;
+      -webkit-touch-callout: none !important;
+    }
+    input, textarea, select, [contenteditable="true"] {
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      user-select: text !important;
+    }
+    img {
+      -webkit-user-drag: none !important;
+      user-drag: none !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+</script>
+
 <script>
 const SERIES = [
   // --- Core / Data Center (modular chassis, S9500) ---
