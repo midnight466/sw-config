@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<title>Switch কনফিগ জেনারেটর</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0f1a1a;
+    --bg-raised: #142322;
+    --panel: #18302d;
+    --border: #274543;
+    --border-soft: #1e3735;
+    --amber: #ffb454;
+    --amber-dim: #8a6b3a;
+    --cyan: #57d9c4;
+    --cyan-dim: #3a7a70;
+    --text: #eaf2f0;
+    --text-dim: #93aba6;
+    --text-faint: #5c7672;
+    --danger: #ff7a7a;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Hind Siliguri', 'JetBrains Mono', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(circle at 20% -10%, #1b3634 0%, var(--bg) 45%) fixed;
+    color: var(--text);
+    font-family: var(--sans);
+    min-height:100vh;
+  }
+  .wrap{
+    max-width:1400px;
+    margin:0 auto;
+    padding: 28px 20px 60px;
+  }
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:24px;
+    padding-bottom:20px;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .brand{ display:flex; align-items:center; gap:14px; }
+  .brand-mark{
+    width:42px;height:42px;border-radius:8px;
+    background: linear-gradient(135deg, var(--cyan) 0%, var(--amber) 100%);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono); font-weight:700; color:#0f1a1a; font-size:13px;
+    flex-shrink:0;
+  }
+  .brand h1{ font-size:19px; margin:0; letter-spacing:0.2px; font-weight:600;}
+  .brand p{ margin:2px 0 0; font-size:12.5px; color:var(--text-dim); font-family:var(--mono);}
+  .badge-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .badge{
+    font-family:var(--mono); font-size:11px; padding:5px 10px;
+    border:1px solid var(--border); border-radius:20px; color:var(--text-dim);
+    background: var(--bg-raised);
+  }
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    align-items:start;
+  }
+  @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
+
+  .card{
+    background: var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:18px 18px 20px;
+    margin-bottom:18px;
+  }
+  .card h2{
+    font-size:13px; text-transform:uppercase; letter-spacing:1.2px;
+    color:var(--cyan); margin:0 0 14px; font-family:var(--mono); font-weight:600;
+    display:flex; align-items:center; gap:8px;
+  }
+  .card h2 .n{
+    background:var(--bg-raised); border:1px solid var(--border);
+    color:var(--amber); width:20px;height:20px;border-radius:4px;
+    display:flex;align-items:center;justify-content:center;font-size:11px;
+  }
+  label{
+    display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:6px; margin-top:14px;
+  }
+  label:first-of-type{ margin-top:0; }
+  select, input[type=text], input[type=number]{
+    width:100%; background:var(--bg-raised); border:1px solid var(--border);
+    color:var(--text); padding:9px 11px; border-radius:6px; font-family:var(--mono);
+    font-size:13.5px; outline:none;
+  }
+  select:focus, input:focus{ border-color:var(--cyan); }
+  .row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  .hint{ font-size:11.5px; color:var(--text-faint); margin-top:5px; }
+
+  .btn{
+    font-family:var(--mono); font-size:12.5px; font-weight:600;
+    background:transparent; color:var(--cyan); border:1px solid var(--cyan-dim);
+    padding:8px 14px; border-radius:6px; cursor:pointer; transition:.15s;
+  }
+  .btn:hover{ background:rgba(87,217,196,0.1); border-color:var(--cyan); }
+  .btn-amber{ color:var(--amber); border-color:var(--amber-dim); }
+  .btn-amber:hover{ background:rgba(255,180,84,0.1); border-color:var(--amber); }
+  .btn-danger{ color:var(--danger); border-color:#6b3a3a; padding:6px 10px; font-size:11.5px;}
+  .btn-danger:hover{ background:rgba(255,122,122,0.1); border-color:var(--danger);}
+  .btn-block{ width:100%; margin-top:12px; }
+
+  .item{
+    background:var(--bg-raised); border:1px solid var(--border-soft); border-radius:7px;
+    padding:12px; margin-top:10px; position:relative;
+  }
+  .item-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .item .row{ margin-top:8px; }
+  .empty-note{ font-size:12px; color:var(--text-faint); font-family:var(--mono); padding:8px 2px; }
+
+  /* Terminal */
+  .term-sticky{ position:sticky; top:20px; }
+  .term{
+    background:#0a1414; border:1px solid var(--border); border-radius:10px;
+    overflow:hidden; box-shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+  .term-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 14px; background:var(--bg-raised); border-bottom:1px solid var(--border);
+  }
+  .dots{ display:flex; gap:6px; }
+  .dot{ width:10px;height:10px;border-radius:50%; }
+  .dot.r{background:#ff5f57;} .dot.y{background:#febc2e;} .dot.g{background:#28c840;}
+  .term-title{ font-family:var(--mono); font-size:12px; color:var(--text-dim); }
+  .term-actions{ display:flex; gap:8px; }
+  .term-body{
+    font-family:var(--mono); font-size:13px; line-height:1.65;
+    padding:16px 18px; max-height:70vh; overflow:auto; white-space:pre-wrap; word-break:break-word;
+  }
+  .c-comment{ color: var(--text-faint); }
+  .c-kw{ color: var(--amber); }
+  .c-val{ color: var(--cyan); }
+  .c-plain{ color: var(--text); }
+  .cursor{
+    display:inline-block; width:8px; height:15px; background:var(--cyan);
+    vertical-align:middle; animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .footnote{
+    margin-top:14px; font-size:11.5px; color:var(--text-faint); font-family:var(--mono);
+    border-left:2px solid var(--amber-dim); padding:8px 12px; background:var(--bg-raised);
+    border-radius:0 6px 6px 0;
+  }
+  ::selection{ background: var(--cyan-dim); }
+
+  .vendor-tabs{ display:flex; gap:8px; margin-bottom:16px; }
+  .vendor-tab{
+    flex:1; font-family:var(--mono); font-size:13px; font-weight:600;
+    background:var(--bg-raised); color:var(--text-dim); border:1px solid var(--border);
+    padding:12px; border-radius:8px; cursor:pointer; transition:.15s;
+  }
+  .vendor-tab:hover{ border-color:var(--cyan-dim); color:var(--text); }
+  .vendor-tab.active{
+    background: linear-gradient(135deg, rgba(87,217,196,0.15), rgba(255,180,84,0.1));
+    border-color:var(--cyan); color:var(--cyan);
+  }
+
+  /* Device Info Modal */
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(5,10,10,0.75);
+    z-index:1000; align-items:center; justify-content:center; padding:20px;
+    backdrop-filter: blur(2px);
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal-box{
+    background: var(--panel); border:1px solid var(--border); border-radius:12px;
+    max-width:640px; width:100%; max-height:85vh; overflow-y:auto;
+    box-shadow: 0 30px 70px -20px rgba(0,0,0,0.7);
+  }
+  .modal-head{
+    position:sticky; top:0; background:var(--panel); z-index:2;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 20px; border-bottom:1px solid var(--border);
+  }
+  .modal-head h3{ margin:0; font-size:15px; color:var(--cyan); font-family:var(--mono); }
+  .modal-close{
+    background:transparent; border:1px solid var(--border); color:var(--text-dim);
+    width:28px; height:28px; border-radius:6px; cursor:pointer; font-size:14px; line-height:1;
+  }
+  .modal-close:hover{ border-color:var(--danger); color:var(--danger); }
+  .modal-body{ padding:16px 20px 22px; }
+  .info-block{ margin-bottom:18px; }
+  .info-block h4{
+    font-family:var(--mono); font-size:12.5px; color:var(--amber); text-transform:uppercase;
+    letter-spacing:0.8px; margin:0 0 8px; display:flex; align-items:center; gap:6px;
+  }
+  .info-block p{ margin:0 0 8px; font-size:13px; line-height:1.6; color:var(--text); }
+  .kv-table{ width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12.5px; }
+  .kv-table td{ padding:6px 8px; border-bottom:1px solid var(--border-soft); vertical-align:top; }
+  .kv-table td:first-child{ color:var(--text-dim); white-space:nowrap; width:38%; }
+  .kv-table td:last-child{ color:var(--cyan); }
+  .warn-box{
+    font-size:12px; color:var(--text-dim); background:var(--bg-raised);
+    border-left:2px solid var(--amber-dim); padding:8px 12px; border-radius:0 6px 6px 0; margin-top:6px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark" id="brandMark">BD</div>
+      <div>
+        <h1 id="mainTitle">BDCOM Switch Config</h1>
+        <p id="mainSubtitle">Core · Aggregation · Access · PoE সিরিজ — VLAN · Trunk · Access · Mgmt IP</p>
+      </div>
+    </div>
+    <div class="badge-row">
+      <span class="badge" id="badge-model">MODEL: —</span>
+      <span class="badge" id="badge-ports">PORTS: —</span>
+      <span class="badge" id="badge-lines">0 lines</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- LEFT: FORM -->
+    <div>
+
+      <div class="vendor-tabs">
+        <button class="vendor-tab active" id="vtab-bdcom" onclick="setVendor('bdcom')">🔷 BDCOM সুইচ</button>
+        <button class="vendor-tab" id="vtab-mikrotik" onclick="setVendor('mikrotik')">🔶 MikroTik সুইচ</button>
+      </div>
+
+      <div class="card">
+        <h2 style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+          <span><span class="n">1</span>ডিভাইস ও ইন্টারফেস</span>
+          <button class="btn btn-amber" style="padding:5px 10px; font-size:11px; text-transform:none; letter-spacing:0;" onclick="openDeviceInfo()">📄 Device তথ্য</button>
+        </h2>
+        <label id="seriesLabel">মডেল গ্রুপ (একই কনফিগ প্রোফাইলের সব মডেল একসাথে)</label>
+        <select id="series"></select>
+        <label>সঠিক মডেল নাম্বার (ঐচ্ছিক)</label>
+        <input type="text" id="exactModel" placeholder="যেমন S2928EF-2AC, S2528C-2AC">
+        <div class="hint" id="seriesHint">উপরের লিস্টে যেসব মডেল নাম্বার একসাথে দেখানো হয়েছে (যেমন S9506 · S9510 · S9514 · S9518) সেগুলোর ইন্টারফেস সিনট্যাক্স ও কনফিগ স্ট্রাকচার একই। আপনার আসল মডেল তালিকায় না থাকলেও কাছাকাছি গ্রুপ বেছে নিয়ে এখানে সঠিক নাম্বার লিখে দিন।</div>
+        <div class="row">
+          <div>
+            <label>হোস্টনেম</label>
+            <input type="text" id="hostname" value="BDCOM-CORE">
+          </div>
+          <div>
+            <label>এনাবল পাসওয়ার্ড (ঐচ্ছিক)</label>
+            <input type="text" id="enablepass" placeholder="খালি রাখলে যোগ হবে না">
+          </div>
+        </div>
+        <div class="row" id="prefixWrap">
+          <div>
+            <label>1G পোর্ট প্রিফিক্স</label>
+            <input type="text" id="prefixMain" value="GigaEthernet0/">
+          </div>
+          <div id="prefixUplinkWrap">
+            <label>10G পোর্ট প্রিফিক্স</label>
+            <input type="text" id="prefixUplink" value="TenGigaEthernet0/">
+          </div>
+        </div>
+        <div class="hint">সিরিজ বদলালে দুটো প্রিফিক্সই অটো-সাজেস্ট হয়; ফার্মওয়্যার অনুযায়ী প্রয়োজনে নিজে এডিট করুন। GE-only মডেলে আপলিংক প্রিফিক্স ফিল্ড হাইড থাকবে।</div>
+        <label>পোর্ট বিবরণ (1G / 10G পোর্ট সংখ্যা)</label>
+        <input type="text" id="portInfo" placeholder="যেমন 24× GigaEthernet + 4× TenGigaEthernet">
+        <div class="hint">মডেল সিলেক্ট করলে টিপিক্যাল পোর্ট লেআউট অটো বসবে — এক্সাক্ট মডেলের সঠিক সংখ্যা জানা থাকলে এখানে বদলে দিন। এটা জেনারেটেড কনফিগের হেডারেও দেখাবে।</div>
+      </div>
+
+      <div class="card">
+        <h2><span class="n">2</span>ম্যানেজমেন্ট আইপি (Point-to-Point)</h2>
+        <label>ম্যানেজমেন্ট মোড</label>
+        <select id="mgmtmode">
+          <option value="vlan">VLAN ইন্টারফেসের মাধ্যমে (in-band)</option>
+          <option value="mgmt">ডেডিকেটেড Mgmt পোর্ট (out-of-band)</option>
+        </select>
+        <div class="row" id="mgmtvlanwrap">
+          <div>
+            <label>ম্যানেজমেন্ট VLAN আইডি</label>
+            <input type="number" id="mgmtvlan" value="99">
+          </div>
+          <div>
+            <label>সাবনেট টাইপ</label>
+            <select id="p2ptype">
+              <option value="30">/30 (Point-to-Point, ৪ IP)</option>
+              <option value="31">/31 (Point-to-Point, ২ IP)</option>
+              <option value="29">/29 (৬ ইউজেবল)</option>
+              <option value="custom">কাস্টম মাস্ক</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>ম্যানেজমেন্ট আইপি</label>
+            <input type="text" id="mgmtip" value="" placeholder="যেমন 192.168.10.1 (আপনার নেটওয়ার্ক অনুযায়ী)">
+          </div>
+          <div id="custommaskwrap" style="display:none;">
+            <label>কাস্টম সাবনেট মাস্ক</label>
+            <input type="text" id="custommask" value="255.255.255.252">
+          </div>
+        </div>
+        <label>ডিফল্ট গেটওয়ে (ঐচ্ছিক)</label>
+        <input type="text" id="mgmtgw" placeholder="যেমন 10.10.99.2">
+      </div>
+
+      <div class="card">
+        <h2><span class="n">3</span>VLAN তালিকা</h2>
+        <div id="vlanList"></div>
+        <div class="empty-note" id="vlanEmpty">এখনো কোনো VLAN যোগ করা হয়নি।</div>
+        <button class="btn btn-block" onclick="addVlan()">+ VLAN যোগ করুন</button>
+        <div class="hint">রেঞ্জ সাপোর্টেড: <span class="c-val" style="color:var(--cyan)">10-20</span> লিখলে VLAN 10 থেকে 20 পর্যন্ত সব তৈরি হবে। কমা দিয়ে একাধিক রেঞ্জও দেওয়া যায়: <span class="c-val" style="color:var(--cyan)">10,20,30-35</span></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="n">4</span>Trunk পোর্ট (10G Uplink)</h2>
+        <div id="trunkList"></div>
+        <div class="empty-note" id="trunkEmpty">এখনো কোনো Trunk পোর্ট যোগ করা হয়নি।</div>
+        <button class="btn btn-block" onclick="addTrunk()">+ Trunk পোর্ট যোগ করুন</button>
+      </div>
+
+      <div class="card">
+        <h2><span class="n">5</span>Access পোর্ট</h2>
+        <div id="accessList"></div>
+        <div class="empty-note" id="accessEmpty">এখনো কোনো Access পোর্ট যোগ করা হয়নি।</div>
+        <button class="btn btn-block" onclick="addAccess()">+ Access পোর্ট যোগ করুন</button>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: TERMINAL -->
+    <div class="term-sticky">
+      <div class="term">
+        <div class="term-bar">
+          <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+          <div class="term-title" id="term-title">BDCOM-10G-CORE — running-config</div>
+          <div class="term-actions">
+            <button class="btn" onclick="copyConfig()">Copy</button>
+            <button class="btn btn-amber" onclick="downloadConfig()">Download</button>
+          </div>
+        </div>
+        <div class="term-body" id="output"></div>
+      </div>
+      <div class="footnote">
+        ⚠ ইন্টারফেস নেমিং (GigaEthernet/TenGigaEthernet/XGigaEthernet/FastEthernet, স্লট/পোর্ট নাম্বারিং) BDROS ফার্মওয়্যার ভার্সন ও মডেল অনুযায়ী ভিন্ন হতে পারে। ডিপ্লয়ের আগে নিজের ডিভাইসে <span class="c-kw" style="color:var(--amber)">show interface status</span> দিয়ে যাচাই করে নিন।
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Device Info Modal -->
+<div class="modal-overlay" id="deviceInfoModal" onclick="if(event.target===this) closeDeviceInfo()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="deviceInfoTitle">📄 Device তথ্য — PuTTY, লগইন ও ওয়েব GUI অ্যাক্সেস</h3>
+      <button class="modal-close" onclick="closeDeviceInfo()">✕</button>
+    </div>
+    <div class="modal-body" id="deviceInfoBody">
+      <!-- fully regenerated by JS on every open, based on currentVendor -->
+    </div>
+  </div>
+</div>
+
+<script>
+const SERIES = [
+  // --- Core / Data Center (modular chassis, S9500) ---
+  {id:"s9506", label:"S9506 (S9500 সিরিজ — Core/DC, মডিউলার)", group:"কোর", main:"TenGigaEthernet0/", uplink:"FortyGigaEthernet0/", has10g:true, ports:"মডিউলার চ্যাসিস — 4 লাইনকার্ড স্লট; লাইনকার্ড অনুযায়ী GE/10G/40G/100G পোর্ট নির্ভরশীল", dnotes:"মডিউলার চ্যাসিস — কনসোল পোর্ট সাধারণত মাস্টার/সুপারভাইজর মডিউলে থাকে, ডুয়াল-সুপারভাইজর সেটআপে অ্যাক্টিভ মডিউলটা ব্যবহার করুন।"},
+  {id:"s9510", label:"S9510 (S9500 সিরিজ — Core/DC, মডিউলার)", group:"কোর", main:"TenGigaEthernet0/", uplink:"FortyGigaEthernet0/", has10g:true, ports:"মডিউলার চ্যাসিস — 8 লাইনকার্ড স্লট; লাইনকার্ড অনুযায়ী GE/10G/40G/100G পোর্ট নির্ভরশীল", dnotes:"মডিউলার চ্যাসিস — কনসোল পোর্ট সাধারণত মাস্টার/সুপারভাইজর মডিউলে থাকে, ডুয়াল-সুপারভাইজর সেটআপে অ্যাক্টিভ মডিউলটা ব্যবহার করুন।"},
+  {id:"s9514", label:"S9514 (S9500 সিরিজ — Core/DC, মডিউলার)", group:"কোর", main:"TenGigaEthernet0/", uplink:"FortyGigaEthernet0/", has10g:true, ports:"মডিউলার চ্যাসিস — 12 লাইনকার্ড স্লট; লাইনকার্ড অনুযায়ী GE/10G/40G/100G পোর্ট নির্ভরশীল", dnotes:"মডিউলার চ্যাসিস — কনসোল পোর্ট সাধারণত মাস্টার/সুপারভাইজর মডিউলে থাকে, ডুয়াল-সুপারভাইজর সেটআপে অ্যাক্টিভ মডিউলটা ব্যবহার করুন।"},
+  {id:"s9518", label:"S9518 (S9500 সিরিজ — Core/DC, মডিউলার)", group:"কোর", main:"TenGigaEthernet0/", uplink:"FortyGigaEthernet0/", has10g:true, ports:"মডিউলার চ্যাসিস — 16 লাইনকার্ড স্লট; লাইনকার্ড অনুযায়ী GE/10G/40G/100G পোর্ট নির্ভরশীল", dnotes:"মডিউলার চ্যাসিস — কনসোল পোর্ট সাধারণত মাস্টার/সুপারভাইজর মডিউলে থাকে, ডুয়াল-সুপারভাইজর সেটআপে অ্যাক্টিভ মডিউলটা ব্যবহার করুন।"},
+  // --- Core Routing (modular chassis, S8500) ---
+  {id:"s8503", label:"S8503 (S8500 সিরিজ — Core Routing, মডিউলার)", group:"কোর", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"মডিউলার চ্যাসিস; লাইনকার্ড অনুযায়ী GE/10G পোর্ট নির্ভরশীল", dnotes:"মডিউলার চ্যাসিস — কনসোল পোর্ট মাস্টার সুপারভাইজর মডিউলে থাকে।"},
+  {id:"s8506", label:"S8506 (S8500 সিরিজ — Core Routing, মডিউলার)", group:"কোর", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"মডিউলার চ্যাসিস; লাইনকার্ড অনুযায়ী GE/10G পোর্ট নির্ভরশীল", dnotes:"মডিউলার চ্যাসিস — কনসোল পোর্ট মাস্টার সুপারভাইজর মডিউলে থাকে।"},
+  {id:"s8510", label:"S8510 (S8500 সিরিজ — Core Routing, মডিউলার, সর্বোচ্চ 16 স্লট)", group:"কোর", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"মডিউলার চ্যাসিস — সর্বোচ্চ 16 এক্সপ্যানশন স্লট, 18Tbps ব্যাকপ্লেন; লাইনকার্ড অনুযায়ী GE/10G পোর্ট নির্ভরশীল", dnotes:"মডিউলার চ্যাসিস — কনসোল পোর্ট মাস্টার সুপারভাইজর মডিউলে থাকে, সর্বোচ্চ 16 স্লট।"},
+  // --- Full-10G fixed switches ---
+  {id:"s5832", label:"S5832 (S5800 সিরিজ — Full-10G Aggregation)", group:"অ্যাগ্রিগেশন", main:"XGigaEthernet0/", uplink:"XGigaEthernet0/", has10g:true, ports:"সব পোর্ট 10G — 32× 10G"},
+  {id:"s5864", label:"S5864 (S5800 সিরিজ — Full-10G Aggregation)", group:"অ্যাগ্রিগেশন", main:"XGigaEthernet0/", uplink:"XGigaEthernet0/", has10g:true, ports:"সব পোর্ট 10G — 64× 10G"},
+  {id:"s5612", label:"S5612 / S5612E (Full 10GE Routing Switch)", group:"অ্যাগ্রিগেশন", main:"GigaEthernet0/", uplink:"XGigaEthernet0/", has10g:true, ports:"8× Gigabit RJ45 + 12× 10G/GE SFP+ (কম্বো)"},
+  // --- L3 stackable / 10G uplink aggregation (S3900) ---
+  {id:"s3900-24t6x", label:"S3900-24T6X (S3900 সিরিজ — L3 Managed Stackable)", group:"অ্যাগ্রিগেশন", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"24× GigaEthernet TX + 6× 10G SFP+ আপলিংক"},
+  {id:"s3900-48s6x", label:"S3900-48S6X (S3900 সিরিজ — L3 Managed Stackable)", group:"অ্যাগ্রিগেশন", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"48× GigaEthernet SFP + 6× 10G SFP+ আপলিংক"},
+  // --- S3700 (8 exact models, all 48GE+8x10GE) ---
+  {id:"s3740", label:"S3740 (S3700 সিরিজ — 10GE Aggregation)", group:"অ্যাগ্রিগেশন", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"48× GigaEthernet + 8× TenGigaEthernet"},
+  {id:"s3740f", label:"S3740F (S3700 সিরিজ — 10GE Aggregation)", group:"অ্যাগ্রিগেশন", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"48× GigaEthernet (অপটিক্যাল) + 8× TenGigaEthernet"},
+  {id:"s3756", label:"S3756 (S3700 সিরিজ — 10GE Aggregation)", group:"অ্যাগ্রিগেশন", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"48× GigaEthernet + 8× TenGigaEthernet"},
+  {id:"s3756f", label:"S3756F (S3700 সিরিজ — 10GE Aggregation)", group:"অ্যাগ্রিগেশন", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"48× GigaEthernet (অপটিক্যাল) + 8× TenGigaEthernet"},
+  {id:"s3732p", label:"S3732P (S3700 সিরিজ — PoE, 500W)", group:"অ্যাগ্রিগেশন", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"48× GigaEthernet PoE + 8× TenGigaEthernet, ~500W PoE বাজেট", dnotes:"PoE মডেল (~500W বাজেট) — কনসোল/লগইন সাধারণ নিয়মেই কাজ করে, তবে PoE পোর্টে পাওয়ার বাজেট মাথায় রাখবেন।"},
+  {id:"s3756p", label:"S3756P (S3700 সিরিজ — PoE, 500W)", group:"অ্যাগ্রিগেশন", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"48× GigaEthernet PoE + 8× TenGigaEthernet, ~500W PoE বাজেট", dnotes:"PoE মডেল (~500W বাজেট) — কনসোল/লগইন সাধারণ নিয়মেই কাজ করে, তবে PoE পোর্টে পাওয়ার বাজেট মাথায় রাখবেন।"},
+  {id:"s3732m", label:"S3732M (S3700 সিরিজ — PoE, 1100W)", group:"অ্যাগ্রিগেশন", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"48× GigaEthernet PoE + 8× TenGigaEthernet, ~1100W PoE বাজেট", dnotes:"PoE মডেল (~1100W বাজেট) — কনসোল/লগইন সাধারণ নিয়মেই কাজ করে, তবে PoE পোর্টে পাওয়ার বাজেট মাথায় রাখবেন।"},
+  {id:"s3756m", label:"S3756M (S3700 সিরিজ — PoE, 1100W)", group:"অ্যাগ্রিগেশন", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"48× GigaEthernet PoE + 8× TenGigaEthernet, ~1100W PoE বাজেট", dnotes:"PoE মডেল (~1100W বাজেট) — কনসোল/লগইন সাধারণ নিয়মেই কাজ করে, তবে PoE পোর্টে পাওয়ার বাজেট মাথায় রাখবেন।"},
+  // --- S3500 (GE only, no 10G) ---
+  {id:"s3528", label:"S3528 (S3500 সিরিজ — L3 Full-Gigabit Routing)", group:"অ্যাগ্রিগেশন (GE only)", main:"GigaEthernet0/", uplink:null, has10g:false, ports:"24× GE TX + 4× GE অপটিক্যাল (10G নেই)"},
+  {id:"s3540f", label:"S3540F (S3500 সিরিজ — L3 Full-Gigabit Routing)", group:"অ্যাগ্রিগেশন (GE only)", main:"GigaEthernet0/", uplink:null, has10g:false, ports:"32× GE অপটিক্যাল + 8× GE TX (10G নেই)"},
+  // --- S3400 (GE only, no 10G) ---
+  {id:"s3424h", label:"S3424H (S3400 সিরিজ — L3 Aggregation)", group:"অ্যাগ্রিগেশন (GE only)", main:"GigaEthernet0/", uplink:null, has10g:false, ports:"সাধারণত 24× GigaEthernet (10G নেই)"},
+  {id:"s3448", label:"S3448 (S3400 সিরিজ — L3 Aggregation)", group:"অ্যাগ্রিগেশন (GE only)", main:"GigaEthernet0/", uplink:null, has10g:false, ports:"সাধারণত 48× GigaEthernet (10G নেই)"},
+  {id:"s3000", label:"S3000 সিরিজ (মডেল অনির্দিষ্ট) — L3 Aggregation", group:"অ্যাগ্রিগেশন (GE only)", main:"GigaEthernet0/", uplink:null, has10g:false, ports:"সাধারণত 24/48× GigaEthernet (সীমিত পাবলিক ডেটা, 10G নেই)"},
+  // --- S2900 (5 exact models, GE + 10G uplink, L3-lite) ---
+  {id:"s2900-24t4x", label:"S2900-24T4X (S2900 সিরিজ — L3-lite, GE + 10G Uplink)", group:"অ্যাক্সেস (10G আপলিংক)", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"24× GigaEthernet TX + 4× 10G SFP+ আপলিংক"},
+  {id:"s2900-24s8c4x", label:"S2900-24S8C4X (S2900 সিরিজ — L3-lite, = S2928EF-2AC)", group:"অ্যাক্সেস (10G আপলিংক)", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"16× GE SFP + 8× GE কম্বো (মোট 24× GE) + 4× 10G SFP+ আপলিংক"},
+  {id:"s2900-48t4x", label:"S2900-48T4X (S2900 সিরিজ — L3-lite, GE + 10G Uplink)", group:"অ্যাক্সেস (10G আপলিংক)", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"48× GigaEthernet TX + 4× 10G SFP+ আপলিংক"},
+  {id:"s2900-48t6x", label:"S2900-48T6X (S2900 সিরিজ — L3-lite, GE + 10G Uplink)", group:"অ্যাক্সেস (10G আপলিংক)", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"48× GigaEthernet TX + 6× 10G SFP+ আপলিংক"},
+  {id:"s2900-48s6x", label:"S2900-48S6X (S2900 সিরিজ — L3-lite, GE + 10G Uplink)", group:"অ্যাক্সেস (10G আপলিংক)", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:"48× GigaEthernet SFP + 6× 10G SFP+ আপলিংক"},
+  // --- S2500-C / S2500-P (GE only, no 10G) ---
+  {id:"s2510c", label:"S2510-C (S2500-C সিরিজ — L2+/L3-lite Managed)", group:"অ্যাক্সেস (GE only)", main:"GigaEthernet0/", uplink:null, has10g:false, ports:"8× GE + 2× GE SFP (10G নেই)"},
+  {id:"s2528c", label:"S2528-C (S2500-C সিরিজ — L2+/L3-lite Managed)", group:"অ্যাক্সেস (GE only)", main:"GigaEthernet0/", uplink:null, has10g:false, ports:"24× GE + 4× GE SFP (10G নেই)"},
+  {id:"s2510p", label:"S2510-P (S2500-P সিরিজ — PoE+ Access)", group:"অ্যাক্সেস (GE only)", main:"GigaEthernet0/", uplink:null, has10g:false, ports:"8× GE PoE+ + 2× GE SFP (10G নেই)", dnotes:"PoE+ মডেল — কনসোল/লগইন সাধারণ নিয়মেই কাজ করে, PoE বাজেট ডেটাশিট অনুযায়ী সীমিত।"},
+  {id:"s2528p", label:"S2528-P (S2500-P সিরিজ — PoE+ Access)", group:"অ্যাক্সেস (GE only)", main:"GigaEthernet0/", uplink:null, has10g:false, ports:"24× GE PoE+ + 4× GE SFP, 370W PoE বাজেট (10G নেই)", dnotes:"PoE+ মডেল, 370W বাজেট — কনসোল/লগইন সাধারণ নিয়মেই কাজ করে।"},
+  {id:"s2200", label:"S2200 সিরিজ (মডেল অনির্দিষ্ট) — L2 Access Ethernet", group:"অ্যাক্সেস (GE only)", main:"GigaEthernet0/", uplink:null, has10g:false, ports:"সাধারণত 8/16/24× GigaEthernet (সীমিত পাবলিক ডেটা, 10G নেই)"},
+  {id:"s1900", label:"S1900 সিরিজ (মডেল অনির্দিষ্ট) — Lite-Managed Access", group:"অ্যাক্সেস (GE only)", main:"GigaEthernet0/", uplink:null, has10g:false, ports:"সাধারণত 8/16/24× GigaEthernet (সীমিত পাবলিক ডেটা, 10G নেই)"},
+  {id:"s2000", label:"S2000 (L2 Access, FE)", group:"অ্যাক্সেস (GE only)", main:"FastEthernet0/", uplink:null, has10g:false, ports:"সাধারণত 24× FastEthernet (10/100M) + 2× GigaEthernet আপলিংক"},
+  {id:"s2000ws", label:"S2000WS (Web-Smart L2 Access, FE)", group:"অ্যাক্সেস (GE only)", main:"FastEthernet0/", uplink:null, has10g:false, ports:"সাধারণত 24× FastEthernet (10/100M) + 2× GigaEthernet আপলিংক"},
+  // --- Unmanaged PoE / CCTV (no real CLI) ---
+  {id:"s1006-4p", label:"BDC-S1006-4P (S1000 সিরিজ — Unmanaged PoE) ⚠ CLI নেই", group:"Unmanaged", main:"FastEthernet0/", uplink:null, has10g:false, ports:"4× FE PoE+ + 2 আপলিংক পোর্ট, 10/100M (আনম্যানেজড, CCTV মোড)"},
+  {id:"s1010-8p", label:"BDC-S1010-8P (S1000 সিরিজ — Unmanaged PoE) ⚠ CLI নেই", group:"Unmanaged", main:"FastEthernet0/", uplink:null, has10g:false, ports:"8× FE PoE+ + 2 আপলিংক পোর্ট, 10/100M (আনম্যানেজড, CCTV মোড)"},
+  {id:"s1518-16p", label:"BDC-S1518-16P-330 (S1500-P সিরিজ — Unmanaged PoE) ⚠ CLI নেই", group:"Unmanaged", main:"GigaEthernet0/", uplink:null, has10g:false, ports:"16× GE PoE+ + 2× GE SFP আপলিংক (আনম্যানেজড, CCTV মোড)"},
+  {id:"s1526-24p", label:"BDC-S1526-24P-400 (S1500-P সিরিজ — Unmanaged PoE) ⚠ CLI নেই", group:"Unmanaged", main:"GigaEthernet0/", uplink:null, has10g:false, ports:"24× GE PoE+ + 2× GE SFP আপলিংক (আনম্যানেজড, CCTV মোড)"},
+  // --- Custom / anything not listed ---
+  {id:"custom", label:"কাস্টম — তালিকায় নেই এমন যেকোনো মডেল", group:"কাস্টম", main:"GigaEthernet0/", uplink:"TenGigaEthernet0/", has10g:true, ports:""},
+];
+
+// ===================== MikroTik model list (official help.mikrotik.com) =====================
+const MIKROTIK_SERIES = [
+  // --- Legacy CRS1xx/2xx (QCA switch chip) ---
+  {id:"crs106", label:"CRS106-1C-5S (Legacy CRS1xx)", group:"Legacy CRS1xx/2xx", main:"ether", uplink:"sfp", has10g:false, cli:"routeros", ports:"1× কম্বো + 5× SFP", dnotes:"লিগ্যাসি CRS1xx সিরিজ — RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud)।"},
+  {id:"crs109", label:"CRS109-8G-1S (Legacy CRS1xx)", group:"Legacy CRS1xx/2xx", main:"ether", uplink:"sfp", has10g:false, cli:"routeros", ports:"8× GigabitEthernet + 1× SFP", dnotes:"লিগ্যাসি CRS1xx সিরিজ — RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud)।"},
+  {id:"crs112-8g", label:"CRS112-8G-4S (Legacy CRS1xx)", group:"Legacy CRS1xx/2xx", main:"ether", uplink:"sfp", has10g:false, cli:"routeros", ports:"8× GigabitEthernet + 4× SFP", dnotes:"লিগ্যাসি CRS1xx সিরিজ — RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud)।"},
+  {id:"crs112-8p", label:"CRS112-8P-4S (Legacy CRS1xx, PoE)", group:"Legacy CRS1xx/2xx", main:"ether", uplink:"sfp", has10g:false, cli:"routeros", ports:"8× GigabitEthernet PoE + 4× SFP", dnotes:"লিগ্যাসি CRS1xx সিরিজ, PoE-out সাপোর্ট করে — RJ45 কনসোল পোর্ট আছে (115200 baud), PoE বাজেট ডেটাশিট অনুযায়ী চেক করুন।"},
+  {id:"crs210", label:"CRS210-8G-2S+ (Legacy CRS2xx)", group:"Legacy CRS1xx/2xx", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"8× GigabitEthernet + 2× SFP+", dnotes:"লিগ্যাসি CRS2xx সিরিজ — RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud)।"},
+  {id:"crs212", label:"CRS212-1G-10S-1S+ (Legacy CRS2xx)", group:"Legacy CRS1xx/2xx", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"1× GigabitEthernet + 10× SFP + 1× SFP+", dnotes:"লিগ্যাসি CRS2xx সিরিজ — RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud)।"},
+  {id:"crs226", label:"CRS226-24G-2S+ (Legacy CRS2xx)", group:"Legacy CRS1xx/2xx", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"24× GigabitEthernet + 2× SFP+", dnotes:"লিগ্যাসি CRS2xx সিরিজ — RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud)।"},
+  // --- Modern CRS3xx+ (Marvell Prestera switch chip) ---
+  {id:"crs309", label:"CRS309-1G-8S+IN", group:"CRS3xx+ (Modern)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"1× GigabitEthernet + 8× SFP+", dnotes:"কমপ্যাক্ট মডেল — RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud), সাথে আলাদা ম্যানেজমেন্ট ইথারনেট পোর্ট আছে যেটা PoE-in দিয়ে পাওয়ার নেওয়া যায়।"},
+  {id:"crs310-5s4s", label:"CRS310-1G-5S-4S+IN", group:"CRS3xx+ (Modern)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"1× GigabitEthernet + 5× SFP + 4× SFP+", dnotes:"RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud)।"},
+  {id:"crs310-8g", label:"CRS310-8G+2S+IN", group:"CRS3xx+ (Modern)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"8× 2.5G Ethernet + 2× SFP+", dnotes:"RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud), 2.5G মাল্টি-গিগ পোর্ট।"},
+  {id:"crs312", label:"CRS312-4C+8XG-RM", group:"CRS3xx+ (Modern)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"4× কম্বো (2.5G) + 8× 10G SFP+", dnotes:"RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud), 2.5G কম্বো পোর্ট + পূর্ণ 10G আপলিংক।"},
+  {id:"crs317", label:"CRS317-1G-16S+RM", group:"CRS3xx+ (Modern)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"1× GigabitEthernet + 16× SFP+", dnotes:"RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud)।"},
+  {id:"crs320", label:"CRS320-8P-8B-4S+RM", group:"CRS3xx+ (Modern)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"8× GigabitEthernet PoE + 8× GigabitEthernet + 4× SFP+", dnotes:"PoE-out সাপোর্ট করে — RJ45 কনসোল পোর্ট আছে (115200 baud), PoE বাজেট ডেটাশিট অনুযায়ী চেক করুন।"},
+  {id:"crs326-4c20g", label:"CRS326-4C+20G+2Q+RM", group:"CRS3xx+ (Modern)", main:"ether", uplink:"qsfpplus", has10g:true, cli:"routeros", ports:"4× কম্বো(2.5G) + 20× GigabitEthernet + 2× QSFP+(40G)", dnotes:"RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud), 2.5G কম্বো পোর্ট।"},
+  {id:"crs326-24g", label:"CRS326-24G-2S+IN / RM", group:"CRS3xx+ (Modern)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"24× GigabitEthernet + 2× SFP+", dnotes:"RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud)।"},
+  {id:"crs326-24s", label:"CRS326-24S+2Q+RM", group:"CRS3xx+ (Modern)", main:"sfp-sfpplus", uplink:"qsfpplus", has10g:true, cli:"routeros", ports:"24× SFP+ + 2× QSFP+(40G)", dnotes:"USB ফুল-সাইজ পোর্ট + RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud), ডুয়াল পাওয়ার সাপ্লাই।"},
+  {id:"crs328-4c", label:"CRS328-4C-20S-4S+RM", group:"CRS3xx+ (Modern)", main:"sfp", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"4× কম্বো + 20× SFP + 4× SFP+", dnotes:"RJ45 কনসোল পোর্ট আছে (115200 baud), মোড বাটন কাস্টম RouterOS কমান্ডের জন্য কনফিগার করা যায়, ডুয়াল পাওয়ার সাপ্লাই।"},
+  {id:"crs328-24p", label:"CRS328-24P-4S+RM", group:"CRS3xx+ (Modern)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"24× GigabitEthernet PoE + 4× SFP+", dnotes:"PoE-out সাপোর্ট করে (500W, 24 পোর্ট, 30W পর্যন্ত পার-পোর্ট) — RJ45 কনসোল পোর্ট আছে (115200 baud)।"},
+  {id:"crs354-48g", label:"CRS354-48G-4S+2Q+RM", group:"CRS3xx+ (Modern)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"48× GigabitEthernet + 4× SFP+ + 2× QSFP+(40G)", dnotes:"RJ45 সিরিয়াল কনসোল পোর্ট আছে (115200 baud)।"},
+  {id:"crs354-48p", label:"CRS354-48P-4S+2Q+RM", group:"CRS3xx+ (Modern)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"48× GigabitEthernet PoE + 4× SFP+ + 2× QSFP+(40G)", dnotes:"PoE-out সাপোর্ট করে — RJ45 কনসোল পোর্ট আছে (115200 baud), PoE বাজেট ডেটাশিট অনুযায়ী চেক করুন।"},
+  {id:"crs418-8p", label:"CRS418-8P-8G-2S+RM", group:"CRS3xx+ (Modern)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"8× GigabitEthernet PoE + 8× GigabitEthernet + 2× SFP+", dnotes:"PoE-out সাপোর্ট করে — RJ45 কনসোল পোর্ট আছে (115200 baud)।"},
+  {id:"crs418-wifi", label:"CRS418-8P-8G-2S+5axQ2axQ-RM (WiFi6)", group:"CRS3xx+ (Modern)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"routeros", ports:"8× GigabitEthernet PoE + 8× GigabitEthernet + 2× SFP+ + WiFi6 রেডিও", dnotes:"PoE-out + বিল্ট-ইন WiFi6 রেডিও — RJ45 কনসোল পোর্ট আছে (115200 baud), ওয়্যারলেস কনফিগ আলাদাভাবে করতে হবে।"},
+  // --- Core (100G/400G) ---
+  {id:"crs510", label:"CRS510-8XS-2XQ-IN", group:"কোর (100G+)", main:"sfp28", uplink:"qsfp28", has10g:true, cli:"routeros", ports:"8× SFP28(25G) + 2× QSFP28(100G)", dnotes:"হাই-ডেনসিটি কোর মডেল (25G/100G) — কনসোল/ম্যানেজমেন্ট পোর্ট স্পেসিফিকেশন সাধারণ CRS3xx থেকে ভিন্ন হতে পারে, ডেটাশিট যাচাই করুন।"},
+  {id:"crs518", label:"CRS518-16XS-2XQ-RM", group:"কোর (100G+)", main:"sfp28", uplink:"qsfp28", has10g:true, cli:"routeros", ports:"16× SFP28(25G) + 2× QSFP28(100G)", dnotes:"হাই-ডেনসিটি কোর মডেল (25G/100G) — কনসোল/ম্যানেজমেন্ট পোর্ট স্পেসিফিকেশন সাধারণ CRS3xx থেকে ভিন্ন হতে পারে, ডেটাশিট যাচাই করুন।"},
+  {id:"crs520", label:"CRS520-4XS-16XQ-RM", group:"কোর (100G+)", main:"sfp28", uplink:"qsfp28", has10g:true, cli:"routeros", ports:"4× SFP28(25G) + 16× QSFP28(100G)", dnotes:"হাই-ডেনসিটি কোর মডেল (25G/100G) — কনসোল/ম্যানেজমেন্ট পোর্ট স্পেসিফিকেশন সাধারণ CRS3xx থেকে ভিন্ন হতে পারে, ডেটাশিট যাচাই করুন।"},
+  // --- SwOS / CSS series (GUI only, no RouterOS CLI) ---
+  {id:"css318", label:"CSS318-16G-2S+IN (SwOS) ⚠ CLI নেই", group:"CSS / SwOS (GUI-only)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"swos", ports:"16× GigabitEthernet + 2× SFP+ (শুধু ওয়েব GUI, RouterOS CLI নেই)"},
+  {id:"css326", label:"CSS326-24G-2S+RM (SwOS) ⚠ CLI নেই", group:"CSS / SwOS (GUI-only)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"swos", ports:"24× GigabitEthernet + 2× SFP+ (শুধু ওয়েব GUI, RouterOS CLI নেই)"},
+  {id:"css610-8g", label:"CSS610-8G-2S+IN (SwOS) ⚠ CLI নেই", group:"CSS / SwOS (GUI-only)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"swos", ports:"8× GigabitEthernet + 2× SFP+ (শুধু ওয়েব GUI, RouterOS CLI নেই)"},
+  {id:"css610-8p", label:"CSS610-8P-2S+IN (SwOS, PoE) ⚠ CLI নেই", group:"CSS / SwOS (GUI-only)", main:"ether", uplink:"sfp-sfpplus", has10g:true, cli:"swos", ports:"8× GigabitEthernet PoE + 2× SFP+ (শুধু ওয়েব GUI, RouterOS CLI নেই)"},
+];
+
+let currentVendor = 'bdcom';
+
+
+let vlans = [ {id:10, name:"OFFICE"}, {id:20, name:"SERVERS"} ];
+let trunks = [ {port:"1", vlans:"10,20", native:"1", ptype:"uplink", description:"", forceSpeed1g:false} ];
+let accessPorts = [ {portFrom:"1", portTo:"4", vlan:"10", ptype:"main", forceSpeed1g:false} ];
+
+const seriesSel = document.getElementById('series');
+
+function currentSeriesList(){
+  return currentVendor === 'bdcom' ? SERIES : MIKROTIK_SERIES;
+}
+
+function populateSeriesDropdown(){
+  seriesSel.innerHTML = '';
+  const groups = {};
+  currentSeriesList().forEach(s=>{
+    if(!groups[s.group]){
+      groups[s.group] = document.createElement('optgroup');
+      groups[s.group].label = s.group;
+      seriesSel.appendChild(groups[s.group]);
+    }
+    const o = document.createElement('option');
+    o.value = s.id; o.textContent = s.label;
+    groups[s.group].appendChild(o);
+  });
+}
+populateSeriesDropdown();
+
+function applySeriesPrefixes(){
+  const s = currentSeriesList().find(x=>x.id===seriesSel.value);
+  if(!s) return;
+  document.getElementById('prefixMain').value = s.main;
+  document.getElementById('prefixUplink').value = s.uplink || '';
+  document.getElementById('prefixUplinkWrap').style.display = s.has10g ? 'block' : 'none';
+  document.getElementById('portInfo').value = s.ports || '';
+  document.getElementById('badge-ports').textContent = `PORTS: ${s.has10g ? '1G + 10G' : '1G ONLY'}`;
+}
+seriesSel.addEventListener('change', ()=>{
+  applySeriesPrefixes();
+  render();
+});
+
+function setVendor(v){
+  currentVendor = v;
+  document.getElementById('vtab-bdcom').classList.toggle('active', v==='bdcom');
+  document.getElementById('vtab-mikrotik').classList.toggle('active', v==='mikrotik');
+  document.getElementById('hostname').value = v==='bdcom' ? 'BDCOM-CORE' : 'MikroTik-CORE';
+  document.getElementById('mainTitle').textContent = v==='bdcom' ? 'BDCOM Switch Config' : 'MikroTik Switch Config';
+  document.getElementById('mainSubtitle').textContent = v==='bdcom'
+    ? 'Core · Aggregation · Access · PoE সিরিজ — VLAN · Trunk · Access · Mgmt IP'
+    : 'Legacy CRS1xx/2xx · CRS3xx+ · CSS/SwOS — VLAN · Trunk · Access · Mgmt IP';
+  document.getElementById('brandMark').textContent = v==='bdcom' ? 'BD' : 'MT';
+  document.title = v==='bdcom' ? 'BDCOM Switch Config' : 'MikroTik Switch Config';
+  document.getElementById('seriesLabel').textContent = v==='bdcom'
+    ? 'মডেল গ্রুপ (একই কনফিগ প্রোফাইলের সব মডেল একসাথে)'
+    : 'MikroTik মডেল';
+  document.getElementById('seriesHint').textContent = v==='bdcom'
+    ? 'উপরের লিস্টে যেসব মডেল নাম্বার একসাথে দেখানো হয়েছে সেগুলোর ইন্টারফেস সিনট্যাক্স ও কনফিগ স্ট্রাকচার একই। আপনার আসল মডেল তালিকায় না থাকলেও কাছাকাছি গ্রুপ বেছে নিয়ে এখানে সঠিক নাম্বার লিখে দিন।'
+    : 'RouterOS-চালিত CRS মডেলগুলোতে bridge-vlan-filtering স্টাইলে কনফিগ জেনারেট হবে। CSS/SwOS মডেলে কোনো CLI নেই (শুধু ওয়েব GUI) — সিলেক্ট করলে কনফিগের বদলে নোটিশ দেখাবে।';
+  populateSeriesDropdown();
+  seriesSel.value = currentSeriesList()[0].id;
+  applySeriesPrefixes();
+  render();
+}
+
+
+document.getElementById('mgmtmode').addEventListener('change', render);
+document.getElementById('p2ptype').addEventListener('change', ()=>{
+  document.getElementById('custommaskwrap').style.display =
+    document.getElementById('p2ptype').value==='custom' ? 'block' : 'none';
+  render();
+});
+['hostname','exactModel','portInfo','prefixMain','prefixUplink','enablepass','mgmtvlan','mgmtip','mgmtgw','custommask'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', render);
+});
+
+function maskFromCidr(cidr){
+  const map = {29:"255.255.255.248", 30:"255.255.255.252", 31:"255.255.255.254"};
+  return map[cidr] || document.getElementById('custommask').value;
+}
+
+// Parses "10", "10-20", or "10,20,30-35" into a flat array of VLAN IDs.
+function parseVlanIds(input){
+  if(!input && input !== 0) return [];
+  const ids = [];
+  String(input).split(',').forEach(part=>{
+    part = part.trim();
+    if(!part) return;
+    if(part.includes('-')){
+      const [a,b] = part.split('-').map(n=>parseInt(n.trim(),10));
+      if(!isNaN(a) && !isNaN(b)){
+        const start = Math.min(a,b), end = Math.max(a,b);
+        for(let n=start; n<=end; n++) ids.push(n);
+      }
+    } else {
+      const n = parseInt(part,10);
+      if(!isNaN(n)) ids.push(n);
+    }
+  });
+  return [...new Set(ids)].sort((a,b)=>a-b);
+}
+
+// ---------- VLAN ----------
+function addVlan(){
+  vlans.push({id:"", name:""});
+  render();
+}
+function removeVlan(i){ vlans.splice(i,1); render(); }
+function updateVlan(i, field, val){ vlans[i][field] = val; render(); }
+
+function renderVlanList(){
+  const wrap = document.getElementById('vlanList');
+  wrap.innerHTML = "";
+  document.getElementById('vlanEmpty').style.display = vlans.length ? 'none' : 'block';
+  vlans.forEach((v,i)=>{
+    const div = document.createElement('div');
+    div.className = 'item';
+    const count = parseVlanIds(v.id).length;
+    const countNote = count > 1 ? `<div class="hint">→ ${count}টি VLAN তৈরি হবে (${parseVlanIds(v.id)[0]}–${parseVlanIds(v.id)[count-1]})</div>` : '';
+    div.innerHTML = `
+      <div class="item-top">
+        <strong style="font-family:var(--mono);font-size:12px;color:var(--text-dim)">VLAN #${i+1}</strong>
+        <button class="btn btn-danger" onclick="removeVlan(${i})">মুছুন</button>
+      </div>
+      <div class="row">
+        <div><label>VLAN ID / রেঞ্জ</label><input type="text" data-key="vlan-${i}-id" placeholder="যেমন 10 বা 10-20 বা 10,20,30-35" value="${v.id}" oninput="updateVlan(${i},'id',this.value)"></div>
+        <div><label>VLAN নাম (ঐচ্ছিক)</label><input type="text" data-key="vlan-${i}-name" value="${v.name}" oninput="updateVlan(${i},'name',this.value)"></div>
+      </div>
+      ${countNote}`;
+    wrap.appendChild(div);
+  });
+}
+
+// ---------- TRUNK ----------
+function addTrunk(){ trunks.push({port:"", vlans:"", native:"1", ptype:"uplink", description:"", forceSpeed1g:false}); render(); }
+function removeTrunk(i){ trunks.splice(i,1); render(); }
+function updateTrunk(i, field, val){ trunks[i][field] = val; render(); }
+
+function renderTrunkList(){
+  const wrap = document.getElementById('trunkList');
+  wrap.innerHTML = "";
+  const s = currentSeriesList().find(x=>x.id===seriesSel.value);
+  document.getElementById('trunkEmpty').style.display = trunks.length ? 'none' : 'block';
+  trunks.forEach((t,i)=>{
+    const div = document.createElement('div');
+    div.className = 'item';
+    const typeSelect = s.has10g ? `
+        <div><label>পোর্ট টাইপ</label>
+          <select onchange="updateTrunk(${i},'ptype',this.value)">
+            <option value="uplink" ${t.ptype==='uplink'?'selected':''}>10G পোর্ট</option>
+            <option value="main" ${t.ptype==='main'?'selected':''}>1G পোর্ট</option>
+          </select>
+        </div>` : `<input type="hidden" value="main">`;
+    div.innerHTML = `
+      <div class="item-top">
+        <strong style="font-family:var(--mono);font-size:12px;color:var(--text-dim)">Trunk #${i+1}</strong>
+        <button class="btn btn-danger" onclick="removeTrunk(${i})">মুছুন</button>
+      </div>
+      <div class="row3">
+        <div><label>পোর্ট নং</label><input type="text" data-key="trunk-${i}-port" placeholder="যেমন 1 বা 1-2" value="${t.port}" oninput="updateTrunk(${i},'port',this.value)"></div>
+        <div><label>Allowed VLANs</label><input type="text" data-key="trunk-${i}-vlans" placeholder="10,20,30 বা 110-112" value="${t.vlans}" oninput="updateTrunk(${i},'vlans',this.value)"></div>
+        <div><label>Untag VLAN</label><input type="text" data-key="trunk-${i}-native" value="${t.native}" oninput="updateTrunk(${i},'native',this.value)"></div>
+      </div>
+      <div class="row">
+        <div><label>Description (ঐচ্ছিক)</label><input type="text" data-key="trunk-${i}-description" placeholder="যেমন VSOL-OLT-1-EPON-L1" value="${t.description||''}" oninput="updateTrunk(${i},'description',this.value)"></div>
+        <div>${typeSelect}</div>
+      </div>
+      ${(s.has10g && t.ptype==='uplink') ? `
+      <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
+        <input type="checkbox" id="speed1g-${i}" style="width:15px;height:15px;" ${t.forceSpeed1g?'checked':''} onchange="updateTrunk(${i},'forceSpeed1g',this.checked)">
+        <label for="speed1g-${i}" style="margin:0; cursor:pointer;">এই 10G পোর্ট থেকে 1G লিংক আপ করতে হবে (যেমন 1G OLT আপলিংক) — <code style="color:var(--amber)">no fiber-auto-config</code> + <code style="color:var(--amber)">speed 1000</code> যোগ হবে</label>
+      </div>` : ''}`;
+    wrap.appendChild(div);
+  });
+}
+
+// ---------- ACCESS ----------
+function addAccess(){ accessPorts.push({portFrom:"", portTo:"", vlan:"", ptype:"main", forceSpeed1g:false}); render(); }
+function removeAccess(i){ accessPorts.splice(i,1); render(); }
+function updateAccess(i, field, val){ accessPorts[i][field] = val; render(); }
+
+function renderAccessList(){
+  const wrap = document.getElementById('accessList');
+  wrap.innerHTML = "";
+  const s = currentSeriesList().find(x=>x.id===seriesSel.value);
+  document.getElementById('accessEmpty').style.display = accessPorts.length ? 'none' : 'block';
+  accessPorts.forEach((a,i)=>{
+    const div = document.createElement('div');
+    div.className = 'item';
+    const typeSelect = s.has10g ? `
+        <div><label>পোর্ট টাইপ</label>
+          <select onchange="updateAccess(${i},'ptype',this.value)">
+            <option value="main" ${a.ptype==='main'?'selected':''}>1G পোর্ট</option>
+            <option value="uplink" ${a.ptype==='uplink'?'selected':''}>10G পোর্ট</option>
+          </select>
+        </div>` : ``;
+    div.innerHTML = `
+      <div class="item-top">
+        <strong style="font-family:var(--mono);font-size:12px;color:var(--text-dim)">Access গ্রুপ #${i+1}</strong>
+        <button class="btn btn-danger" onclick="removeAccess(${i})">মুছুন</button>
+      </div>
+      <div class="row3">
+        <div><label>শুরু পোর্ট</label><input type="text" data-key="access-${i}-portFrom" value="${a.portFrom}" oninput="updateAccess(${i},'portFrom',this.value)"></div>
+        <div><label>শেষ পোর্ট</label><input type="text" data-key="access-${i}-portTo" value="${a.portTo}" oninput="updateAccess(${i},'portTo',this.value)"></div>
+        <div><label>VLAN</label><input type="text" data-key="access-${i}-vlan" value="${a.vlan}" oninput="updateAccess(${i},'vlan',this.value)"></div>
+      </div>
+      ${typeSelect ? `<div class="row3">${typeSelect}</div>` : ``}
+      ${(s.has10g && a.ptype==='uplink') ? `
+      <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
+        <input type="checkbox" id="aspeed1g-${i}" style="width:15px;height:15px;" ${a.forceSpeed1g?'checked':''} onchange="updateAccess(${i},'forceSpeed1g',this.checked)">
+        <label for="aspeed1g-${i}" style="margin:0; cursor:pointer;">এই 10G পোর্ট থেকে 1G লিংক আপ করতে হবে — <code style="color:var(--amber)">no fiber-auto-config</code> + <code style="color:var(--amber)">speed 1000</code> যোগ হবে</label>
+      </div>` : ''}`;
+    wrap.appendChild(div);
+  });
+}
+
+// ---------- CONFIG BUILD ----------
+function esc(s){ return (s||"").toString(); }
+
+function buildBdcomConfigLines(){
+  const lines = [];
+  const push = (type, text, text2) => lines.push({type, text, text2});
+
+  const hostname = document.getElementById('hostname').value || "BDCOM-CORE";
+  const exactModel = document.getElementById('exactModel').value;
+  const portInfo = document.getElementById('portInfo').value;
+  const prefixMain = document.getElementById('prefixMain').value || "GigaEthernet0/";
+  const prefixUplink = document.getElementById('prefixUplink').value || prefixMain;
+  const enablepass = document.getElementById('enablepass').value;
+  const seriesObj = currentSeriesList().find(s=>s.id===seriesSel.value);
+  const prefixFor = (ptype) => (ptype === 'uplink' && seriesObj.has10g) ? prefixUplink : prefixMain;
+
+  push('comment', `! ---------------------------------------------`);
+  push('comment', `! BDCOM কনফিগ — ${exactModel ? exactModel + ' (' : ''}${seriesObj ? seriesObj.label : ''}${exactModel ? ')' : ''}`);
+  if(portInfo) push('comment', `! পোর্ট: ${portInfo}`);
+  push('comment', `! জেনারেট করা হয়েছে: ${new Date().toLocaleString('en-GB')}`);
+  push('comment', `! ---------------------------------------------`);
+  push('plain', ``);
+  push('kw', `configure terminal`);
+  push('kw', `hostname `, hostname);
+
+  if(enablepass){
+    push('kw', `enable secret `, enablepass);
+  }
+  push('plain', ``);
+
+  // VLANs
+  push('comment', `! ---- VLAN তৈরি ----`);
+  vlans.forEach(v=>{
+    if(!v.id) return;
+    const ids = parseVlanIds(v.id);
+    ids.forEach(id=>{
+      push('kw', `vlan `, id);
+      if(v.name){
+        const nm = ids.length > 1 ? `${v.name}-${id}` : v.name;
+        push('kw-sub', ` name `, nm);
+      }
+    });
+  });
+  push('plain', ``);
+
+  // Management
+  push('comment', `! ---- ম্যানেজমেন্ট আইপি (Point-to-Point) ----`);
+  const mgmtmode = document.getElementById('mgmtmode').value;
+  const mgmtvlan = document.getElementById('mgmtvlan').value;
+  const mgmtip = document.getElementById('mgmtip').value;
+  const mgmtgw = document.getElementById('mgmtgw').value;
+  const cidr = document.getElementById('p2ptype').value;
+  const mask = cidr==='custom' ? document.getElementById('custommask').value : maskFromCidr(parseInt(cidr));
+
+  if(mgmtmode === 'vlan'){
+    push('kw', `interface vlan-interface `, mgmtvlan);
+    push('kw-sub', ` ip address `, `${mgmtip} ${mask}`);
+    push('kw-sub', ` no shutdown`, '');
+  } else {
+    push('kw', `interface Mgmt0`);
+    push('kw-sub', ` ip address `, `${mgmtip} ${mask}`);
+    push('kw-sub', ` no shutdown`, '');
+  }
+  if(mgmtgw){
+    push('kw', `ip route 0.0.0.0 0.0.0.0 `, mgmtgw);
+  }
+  push('plain', ``);
+
+  // Trunk ports
+  push('comment', `! ---- Trunk পোর্ট ----`);
+  trunks.forEach(t=>{
+    if(!t.port) return;
+    push('kw', `interface ${prefixFor(t.ptype)}${t.port}`);
+    if(t.description) push('kw-sub', ` description `, t.description);
+    push('kw-sub', ` switchport mode trunk`, '');
+    if(t.forceSpeed1g){
+      push('kw-sub', ` no fiber-auto-config`, '');
+      push('kw-sub', ` speed 1000`, '');
+    }
+    if(t.vlans) push('kw-sub', ` switchport trunk vlan-allowed `, t.vlans);
+    if(t.native) push('kw-sub', ` switchport trunk vlan-untagged `, t.native);
+    if(t.native) push('kw-sub', ` switchport pvid `, t.native);
+  });
+  push('plain', ``);
+
+  // Access ports
+  push('comment', `! ---- Access পোর্ট ----`);
+  accessPorts.forEach(a=>{
+    if(!a.portFrom || !a.vlan) return;
+    const range = (a.portTo && a.portTo!==a.portFrom) ? `${a.portFrom}-${a.portTo}` : a.portFrom;
+    push('kw', `interface range ${prefixFor(a.ptype)}${range}`);
+    push('kw-sub', ` switchport mode access`, '');
+    if(a.forceSpeed1g){
+      push('kw-sub', ` no fiber-auto-config`, '');
+      push('kw-sub', ` speed 1000`, '');
+    }
+    push('kw-sub', ` switchport access vlan `, a.vlan);
+    push('kw-sub', ` no shutdown`, '');
+  });
+  push('plain', ``);
+
+  push('kw', `end`);
+  push('kw', `write memory`);
+
+  return lines;
+}
+
+// ===================== MikroTik RouterOS config builder (bridge-vlan-filtering style) =====================
+function buildMikrotikConfigLines(){
+  const lines = [];
+  const push = (type, text, text2) => lines.push({type, text, text2});
+
+  const hostname = document.getElementById('hostname').value || "MikroTik-CORE";
+  const exactModel = document.getElementById('exactModel').value;
+  const portInfo = document.getElementById('portInfo').value;
+  const prefixMain = document.getElementById('prefixMain').value || "ether";
+  const prefixUplink = document.getElementById('prefixUplink').value || prefixMain;
+  const seriesObj = currentSeriesList().find(s=>s.id===seriesSel.value);
+  const prefixFor = (ptype) => (ptype === 'uplink' && seriesObj.has10g) ? prefixUplink : prefixMain;
+
+  push('comment', `# ---------------------------------------------`);
+  push('comment', `# MikroTik RouterOS কনফিগ — ${exactModel ? exactModel + ' (' : ''}${seriesObj ? seriesObj.label : ''}${exactModel ? ')' : ''}`);
+  if(portInfo) push('comment', `# পোর্ট: ${portInfo}`);
+  push('comment', `# জেনারেট করা হয়েছে: ${new Date().toLocaleString('en-GB')}`);
+  push('comment', `# ---------------------------------------------`);
+
+  if(seriesObj && seriesObj.cli === 'swos'){
+    push('plain', ``);
+    push('comment', `# ⚠️ এই মডেল (${seriesObj.label}) SwOS চালায় — RouterOS-স্টাইল CLI কনফিগ প্রযোজ্য নয়।`);
+    push('comment', `# SwOS শুধুমাত্র ওয়েব ব্রাউজার (GUI) দিয়ে কনফিগার করা যায়।`);
+    push('comment', `# ডিফল্ট IP: 192.168.88.1 — ব্রাউজারে গিয়ে VLAN/পোর্ট সেটিংস GUI থেকে বসাতে হবে।`);
+    push('comment', `# বিস্তারিত জানতে উপরের "Device তথ্য" বাটনে ক্লিক করুন।`);
+    return lines;
+  }
+
+  push('plain', ``);
+  push('kw', `/system identity set name=`, hostname);
+  push('plain', ``);
+
+  // Bridge with VLAN filtering
+  push('comment', `# ---- Bridge তৈরি (VLAN-aware) ----`);
+  push('kw', `/interface bridge`);
+  push('kw-sub', ` add name=bridge1 vlan-filtering=yes`, '');
+  push('plain', ``);
+
+  // Collect all ports used, and per-port pvid/frame-types
+  const portMeta = {}; // key: "ether3" -> {pvid, frameTypes, description}
+  trunks.forEach(t=>{
+    if(!t.port) return;
+    const ifname = `${prefixFor(t.ptype)}${t.port}`;
+    portMeta[ifname] = {
+      pvid: t.native || '1',
+      frameTypes: 'admit-only-vlan-tagged',
+      description: t.description || ''
+    };
+  });
+  accessPorts.forEach(a=>{
+    if(!a.portFrom || !a.vlan) return;
+    const from = parseInt(a.portFrom,10), to = a.portTo ? parseInt(a.portTo,10) : from;
+    if(isNaN(from)) return;
+    const end = isNaN(to) ? from : to;
+    for(let p=from; p<=end; p++){
+      const ifname = `${prefixFor(a.ptype)}${p}`;
+      portMeta[ifname] = {
+        pvid: a.vlan,
+        frameTypes: 'admit-only-untagged-vlan',
+        description: ''
+      };
+    }
+  });
+
+  // Add ports to bridge
+  push('comment', `# ---- পোর্ট bridge-এ যোগ করা ----`);
+  push('kw', `/interface bridge port`);
+  Object.keys(portMeta).forEach(ifname=>{
+    const m = portMeta[ifname];
+    push('kw-sub', ` add bridge=bridge1 interface=${ifname} pvid=${m.pvid} frame-types=${m.frameTypes}`, '');
+  });
+  push('plain', ``);
+
+  if(Object.values(portMeta).some(m=>m.description)){
+    push('comment', `# ---- পোর্ট বিবরণ (comment) ----`);
+    push('kw', `/interface ethernet`);
+    Object.keys(portMeta).forEach(ifname=>{
+      const m = portMeta[ifname];
+      if(m.description) push('kw-sub', ` set [find name=${ifname}] comment="${m.description}"`, '');
+    });
+    push('plain', ``);
+  }
+
+  // Build VLAN table: for each VLAN id, compute tagged/untagged port lists
+  push('comment', `# ---- VLAN টেবিল (tagged/untagged মেম্বারশিপ) ----`);
+  push('kw', `/interface bridge vlan`);
+
+  const vlanIdToInfo = {}; // id -> {name, tagged:Set, untagged:Set}
+  function ensureVlan(id){
+    if(!vlanIdToInfo[id]) vlanIdToInfo[id] = { name:'', tagged:new Set(), untagged:new Set() };
+    return vlanIdToInfo[id];
+  }
+  vlans.forEach(v=>{
+    if(!v.id) return;
+    parseVlanIds(v.id).forEach(id=>{
+      const info = ensureVlan(id);
+      if(v.name) info.name = v.name;
+    });
+  });
+  trunks.forEach(t=>{
+    if(!t.port) return;
+    const ifname = `${prefixFor(t.ptype)}${t.port}`;
+    parseVlanIds(t.vlans).forEach(id=>{
+      ensureVlan(id).tagged.add(ifname);
+    });
+    if(t.native){
+      parseVlanIds(t.native).forEach(id=>{
+        ensureVlan(id).untagged.add(ifname);
+      });
+    }
+  });
+  accessPorts.forEach(a=>{
+    if(!a.portFrom || !a.vlan) return;
+    const from = parseInt(a.portFrom,10), to = a.portTo ? parseInt(a.portTo,10) : from;
+    if(isNaN(from)) return;
+    const end = isNaN(to) ? from : to;
+    parseVlanIds(a.vlan).forEach(id=>{
+      const info = ensureVlan(id);
+      for(let p=from; p<=end; p++) info.untagged.add(`${prefixFor(a.ptype)}${p}`);
+    });
+  });
+
+  Object.keys(vlanIdToInfo).sort((a,b)=>a-b).forEach(id=>{
+    const info = vlanIdToInfo[id];
+    const taggedList = ['bridge1', ...info.tagged].join(',');
+    const untaggedList = [...info.untagged].join(',');
+    let line = ` add bridge=bridge1 vlan-ids=${id} tagged=${taggedList}`;
+    if(untaggedList) line += ` untagged=${untaggedList}`;
+    if(info.name) line += ` comment="${info.name}"`;
+    push('kw-sub', line, '');
+  });
+  push('plain', ``);
+
+  // Management IP
+  push('comment', `# ---- ম্যানেজমেন্ট আইপি ----`);
+  const mgmtip = document.getElementById('mgmtip').value;
+  const mgmtgw = document.getElementById('mgmtgw').value;
+  const cidr = document.getElementById('p2ptype').value;
+  const cidrNum = cidr === 'custom' ? '' : cidr;
+  push('kw', `/ip address`);
+  push('kw-sub', ` add address=${mgmtip}${cidrNum ? '/'+cidrNum : ''} interface=bridge1`, '');
+  if(mgmtgw){
+    push('plain', ``);
+    push('kw', `/ip route`);
+    push('kw-sub', ` add dst-address=0.0.0.0/0 gateway=${mgmtgw}`, '');
+  }
+  push('plain', ``);
+
+  push('comment', `# কনফিগ সেভ/এক্সপোর্ট করতে:`);
+  push('kw', `/system backup save name=`, hostname);
+
+  return lines;
+}
+
+function buildConfigLines(){
+  return currentVendor === 'bdcom' ? buildBdcomConfigLines() : buildMikrotikConfigLines();
+}
+
+function renderOutput(){
+  const lines = buildConfigLines();
+  const out = document.getElementById('output');
+  out.innerHTML = "";
+  let lineCount = 0;
+  lines.forEach(l=>{
+    const div = document.createElement('div');
+    if(l.type === 'comment'){
+      div.innerHTML = `<span class="c-comment">${esc(l.text)}</span>`;
+    } else if(l.type === 'plain'){
+      div.innerHTML = `&nbsp;`;
+    } else if(l.type === 'kw'){
+      div.innerHTML = `<span class="c-kw">${esc(l.text)}</span><span class="c-val">${esc(l.text2||'')}</span>`;
+    } else if(l.type === 'kw-sub'){
+      div.innerHTML = `<span class="c-kw" style="opacity:.85">${esc(l.text)}</span><span class="c-val">${esc(l.text2||'')}</span>`;
+    }
+    if(l.type!=='plain') lineCount++;
+    out.appendChild(div);
+  });
+  const cursorLine = document.createElement('div');
+  cursorLine.innerHTML = `<span class="c-plain">${document.getElementById('hostname').value || 'BDCOM'}#</span> <span class="cursor"></span>`;
+  out.appendChild(cursorLine);
+
+  document.getElementById('term-title').textContent = `${document.getElementById('hostname').value || 'BDCOM'} — running-config`;
+  document.getElementById('badge-lines').textContent = `${lineCount} lines`;
+  const seriesObj = currentSeriesList().find(s=>s.id===seriesSel.value);
+  const exactModel = document.getElementById('exactModel').value;
+  document.getElementById('badge-model').textContent = `MODEL: ${exactModel ? exactModel.toUpperCase() : (seriesObj ? seriesObj.id.toUpperCase() : '—')}`;
+}
+
+function getPlainConfig(){
+  const lines = buildConfigLines();
+  return lines.map(l=>{
+    if(l.type==='plain') return '';
+    return `${l.text || ''}${l.text2 || ''}`;
+  }).join('\n');
+}
+
+function copyConfig(){
+  const text = getPlainConfig();
+  navigator.clipboard.writeText(text).then(()=>{
+    const btns = document.querySelectorAll('.term-actions .btn');
+    const b = btns[0];
+    const old = b.textContent;
+    b.textContent = 'কপি হয়েছে ✓';
+    setTimeout(()=>{ b.textContent = old; }, 1400);
+  });
+}
+
+function downloadConfig(){
+  const text = getPlainConfig();
+  const blob = new Blob([text], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const hostname = document.getElementById('hostname').value || 'bdcom-10g';
+  a.href = url;
+  a.download = `${hostname.replace(/\s+/g,'-')}-config.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+const UNMANAGED_IDS = ['s1006-4p','s1010-8p','s1518-16p','s1526-24p'];
+const SWOS_IDS = ['css318','css326','css610-8g','css610-8p'];
+
+// ===================== Device Info modal: fully rebuilt from scratch on every open =====================
+function deviceInfoHtml_Unmanaged(modelName){
+  return `
+    <div class="warn-box" style="border-left-color:var(--danger);">
+      ⚠️ <strong style="color:var(--text)">সিলেক্ট করা মডেল: ${modelName}</strong><br><br>
+      এই মডেলটা <strong style="color:var(--danger)">Unmanaged সুইচ</strong> — এতে কোনো CLI, কনসোল পোর্ট, IP অ্যাড্রেস, টেলনেট/SSH, বা ওয়েব GUI নেই। PuTTY দিয়ে লগইন করার কোনো সুযোগ নেই এবং কোনো কনফিগারেশনের দরকারও নেই — সরাসরি ক্যাবল লাগিয়ে ব্যবহার করা যায় (plug-and-play, মূলত CCTV/PoE ব্যবহারের জন্য)।
+    </div>`;
+}
+
+function deviceInfoHtml_Swos(modelName){
+  return `
+    <div class="warn-box" style="border-left-color:var(--danger);">
+      <strong style="color:var(--text)">সিলেক্ট করা মডেল: ${modelName}</strong>
+    </div>
+    <div class="warn-box" style="border-left-color:var(--danger); margin-top:10px;">
+      ⚠️ এই মডেল <strong style="color:var(--text)">SwOS</strong> চালায় (RouterOS না) — সম্পূর্ণ ভিন্ন, সরল একটা ফার্মওয়্যার শুধু ওয়েব ব্রাউজার দিয়ে কনফিগার করা যায়। <strong style="color:var(--danger)">কোনো CLI/PuTTY/SSH/Telnet নেই।</strong><br><br>
+      <strong style="color:var(--cyan)">ওয়েব অ্যাক্সেস:</strong> ডিফল্ট IP <strong style="color:var(--amber)">192.168.88.1</strong> — SwOS যেই IP/MAC থেকে রিকোয়েস্ট আসে সেই ঠিকানাতেই রিপ্লাই দেয়, তাই ডিফল্ট গেটওয়ে সেট করার দরকার হয় না। PC-কে একই সাবনেটে রেখে ব্রাউজারে 192.168.88.1-এ গেলেই GUI খুলবে।
+    </div>`;
+}
+
+function deviceInfoHtml_Bdcom(modelName, mgmtip, mgmtvlan, dnotes, mgmtmask){
+  const ipShown = mgmtip || '(এখনো mgmt IP বসাননি — উপরে "ম্যানেজমেন্ট আইপি" সেকশনে বসান)';
+  const maskShown = mgmtmask || '255.255.255.0';
+  return `
+    <div class="warn-box" style="border-left-color:var(--cyan);">
+      <strong style="color:var(--text)">ভেন্ডর: BDCOM | সিলেক্ট করা মডেল: ${modelName}</strong><br><br>
+      এটা একটা <strong style="color:var(--cyan)">ম্যানেজড সুইচ</strong> — এতে কোনো ইউনিভার্সাল ফ্যাক্টরি ডিফল্ট IP নেই, যা IP-তে চলছে সেটা সবসময় কেউ ম্যানুয়ালি বসিয়েছে। নতুন/রিসেট করা ইউনিটে কনসোল দিয়ে IP বসাতে হবে; আগে থেকে চলা ইউনিটে কনসোলে <code style="color:var(--amber)">show ip interface brief</code> দিয়ে বর্তমান IP দেখে নিতে হবে।<br><br>
+      আপনি টুলে যে ম্যানেজমেন্ট IP বসিয়েছেন: <strong style="color:var(--amber)">${mgmtip || 'এখনো বসাননি'}</strong> (VLAN ${mgmtvlan}) — কনফিগ সুইচে প্রয়োগ করার পর <strong style="color:var(--cyan)">এই IP দিয়েই</strong> SSH/Telnet/ওয়েব GUI অ্যাক্সেস করতে পারবেন। নিচের ধাপগুলোতে এই একই IP ব্যবহার করা হয়েছে, অন্য কোনো এক্সাম্পল IP না।
+      ${dnotes ? `<br><br>📌 <strong style="color:var(--amber)">এই মডেল-নির্দিষ্ট তথ্য:</strong> ${dnotes}` : ''}
+    </div>
+
+    <div class="info-block">
+      <h4>① CLI — PuTTY দিয়ে কনসোল পোর্টে কানেক্ট</h4>
+      <p>কনসোল কেবল (RS232-to-RJ45, সাধারণত সুইচের সাথেই দেওয়া থাকে) দিয়ে PC/ল্যাপটপের সিরিয়াল বা USB-to-Serial পোর্টের সাথে সুইচের কনসোল পোর্ট কানেক্ট করুন। PuTTY খুলে <strong style="color:var(--cyan)">Connection type: Serial</strong> বেছে নিয়ে নিচের সেটিংস দিন —</p>
+      <table class="kv-table">
+        <tr><td>Serial line (COM port)</td><td>ডিভাইস ম্যানেজার থেকে দেখে নিন (যেমন COM3, COM4)</td></tr>
+        <tr><td>Speed (baud rate)</td><td>9600 (ডিফল্ট — না চললে নিচের বিকল্প স্পিড দেখুন)</td></tr>
+        <tr><td>Data bits</td><td>8</td></tr>
+        <tr><td>Parity</td><td>None</td></tr>
+        <tr><td>Stop bits</td><td>1</td></tr>
+        <tr><td>Flow control</td><td>None</td></tr>
+      </table>
+      <div class="warn-box">Open করার পর কিছু না দেখা গেলে টার্মিনালে কয়েকবার Enter চাপুন — লগইন প্রম্পট আসবে।</div>
+      <div class="warn-box" style="margin-top:8px;">⚠️ <strong style="color:var(--text)">9600-এ কাজ না করলে</strong> — PuTTY-তে Speed ফিল্ড বদলে এগুলো ট্রাই করুন: <strong style="color:var(--cyan)">115200</strong> (নতুন/হাই-এন্ড মডেলে কমন), <strong style="color:var(--cyan)">38400</strong>, <strong style="color:var(--cyan)">19200</strong>। Data bits/Parity/Stop bits/Flow control একই (8/None/1/None) রাখবেন।</div>
+    </div>
+
+    <div class="info-block">
+      <h4>② ডিফল্ট লগইন ক্রেডেনশিয়াল</h4>
+      <table class="kv-table">
+        <tr><td>Username</td><td>admin</td></tr>
+        <tr><td>Password</td><td>admin</td></tr>
+        <tr><td>Enable password (প্রিভিলেজড মোড)</td><td>admin (কিছু মডেলে ফাঁকা/blank)</td></tr>
+      </table>
+      <p>লগইনের পর প্রম্পট <code style="color:var(--cyan)">Switch&gt;</code> দেখাবে। প্রিভিলেজড মোডে যেতে <code style="color:var(--amber)">enable</code> লিখে এন্টার দিন, প্রম্পট বদলে <code style="color:var(--cyan)">Switch#</code> হয়ে যাবে — এখান থেকেই <code style="color:var(--amber)">configure terminal</code> দিয়ে কনফিগ শুরু করবেন।</p>
+      <div class="warn-box">⚠️ ফ্যাক্টরি ডিফল্ট admin/admin বেশিরভাগ BDCOM মডেলে কাজ করে, কিন্তু ISP/ভেন্ডর প্রি-কনফিগার করা ইউনিটে বদলানো থাকতে পারে। প্রথম লগইনের পরই পাসওয়ার্ড বদলে নেওয়া ভালো অভ্যাস।</div>
+    </div>
+
+    <div class="info-block">
+      <h4>③ Telnet / SSH (নেটওয়ার্কের মাধ্যমে CLI)</h4>
+      <table class="kv-table">
+        <tr><td>Telnet</td><td>TCP পোর্ট 23 — PuTTY-তে Connection type: Telnet, Host: <strong style="color:var(--amber)">${ipShown}</strong></td></tr>
+        <tr><td>SSH</td><td>TCP পোর্ট 22 — প্রোডাকশনে SSH ব্যবহার করাই নিরাপদ</td></tr>
+      </table>
+    </div>
+
+    <div class="info-block">
+      <h4>④ ওয়েব GUI — mgmt/GE পোর্ট দিয়ে অ্যাক্সেস</h4>
+      <div class="warn-box" style="border-left-color:var(--danger); margin-bottom:10px;">⚠️ <strong style="color:var(--text)">BDCOM S-সিরিজ সুইচে কোনো ইউনিভার্সাল ফ্যাক্টরি ডিফল্ট IP নেই।</strong> অফিসিয়াল ম্যানুয়াল অনুযায়ী: সুইচ যা IP নিয়ে চলছে সেটা সবসময় কেউ না কেউ ম্যানুয়ালি বসিয়েছে (CLI/কনসোল দিয়ে) — তাই মডেল অনুযায়ী "সঠিক ডিফল্ট IP" বলে কিছু নেই, এবং কোনো একটা নম্বর (যেমন 192.168.1.1) সব ইউনিটে কাজ করবে এই গ্যারান্টি দেওয়া যায় না।</div>
+
+      <p><strong style="color:var(--cyan)">যদি সুইচ আগে থেকেই কনফিগার করা থাকে (চালু আছে এমন ডিভাইস):</strong></p>
+      <table class="kv-table">
+        <tr><td>বর্তমান IP জানতে</td><td>কনসোল দিয়ে লগইন করে <code style="color:var(--amber)">show ip interface brief</code> অথবা <code style="color:var(--amber)">show interface vlan1</code> কমান্ড চালান</td></tr>
+        <tr><td>বিকল্প</td><td>যিনি আগে সেটআপ করেছেন তার কাছ থেকে বা ডিভাইসের লেবেল/নোট থেকে IP জেনে নিন</td></tr>
+      </table>
+
+      <p style="margin-top:14px;"><strong style="color:var(--cyan)">যদি নতুন/রিসেট করা সুইচ হয় (কোনো IP-ই নেই):</strong></p>
+      <table class="kv-table">
+        <tr><td>লগইন</td><td>Switch&gt; — তারপর <code style="color:var(--amber)">enable</code></td></tr>
+        <tr><td>কনফিগ মোড</td><td><code style="color:var(--amber)">configure terminal</code></td></tr>
+        <tr><td>VLAN ইন্টারফেস</td><td><code style="color:var(--amber)">interface vlan${mgmtvlan}</code></td></tr>
+        <tr><td>IP বসান</td><td><code style="color:var(--amber)">ip address ${ipShown} ${maskShown}</code></td></tr>
+        <tr><td>পোর্ট চালু</td><td><code style="color:var(--amber)">no shutdown</code></td></tr>
+        <tr><td>সেভ</td><td><code style="color:var(--amber)">write memory</code></td></tr>
+      </table>
+      <p style="margin-top:12px;"><strong style="color:var(--cyan)">এরপর — আপনার টুলে বসানো IP দিয়ে ওয়েব GUI অ্যাক্সেস:</strong></p>
+      <table class="kv-table">
+        <tr><td>১. কানেকশন</td><td>PC-এর ক্যাবল সুইচের যেকোনো VLAN${mgmtvlan}-মেম্বার GE পোর্টে লাগান</td></tr>
+        <tr><td>২. PC-এর IP</td><td>এই IP-এর একই সাবনেটে রাখুন (${ipShown} / ${maskShown})</td></tr>
+        <tr><td>৩. ব্রাউজার</td><td>http://${ipShown}</td></tr>
+        <tr><td>৪. লগইন</td><td>admin / admin</td></tr>
+      </table>
+      <div class="warn-box">উপরের সব ধাপে শুধু আপনি টুলের "ম্যানেজমেন্ট আইপি" সেকশনে যে IP বসিয়েছেন সেটাই দেখানো হয়েছে — কোনো এক্সাম্পল/অনুমান করা IP এখানে নেই। কিছু না বসালে উপরে গিয়ে আগে বসিয়ে নিন।</div>
+    </div>`;
+}
+
+function deviceInfoHtml_Mikrotik(modelName, mgmtip, dnotes){
+  const ipShown = mgmtip || '(এখনো mgmt IP বসাননি — উপরে "ম্যানেজমেন্ট আইপি" সেকশনে বসান)';
+  return `
+    <div class="warn-box" style="border-left-color:var(--cyan);">
+      <strong style="color:var(--text)">ভেন্ডর: MikroTik | সিলেক্ট করা মডেল: ${modelName}</strong><br><br>
+      এটা RouterOS-চালিত একটা <strong style="color:var(--cyan)">ম্যানেজড সুইচ</strong>। ফ্যাক্টরি ফ্রেশ ইউনিটে ether2+ পোর্টে DHCP-তে অটো IP (192.168.88.x) পাওয়া যায়, অথবা Winbox দিয়ে MAC অ্যাড্রেসে সরাসরি কানেক্ট করা যায়।<br><br>
+      আপনি টুলে যে ম্যানেজমেন্ট IP বসিয়েছেন: <strong style="color:var(--amber)">${mgmtip || 'এখনো বসাননি'}</strong> — কনফিগ প্রয়োগ করার পর <strong style="color:var(--cyan)">এই IP দিয়েই</strong> SSH/WebFig অ্যাক্সেস করতে পারবেন।
+      ${dnotes ? `<br><br>📌 <strong style="color:var(--amber)">এই মডেল-নির্দিষ্ট তথ্য:</strong> ${dnotes}` : ''}
+    </div>
+
+    <div class="info-block">
+      <h4>① CLI — কনসোল / Winbox দিয়ে কানেক্ট</h4>
+      <p>MikroTik CRS মডেলে কনসোল অ্যাক্সেস মডেলভেদে ভিন্ন — কিছু মডেলে RJ45/DB9 সিরিয়াল কনসোল পোর্ট আছে, নতুন কমপ্যাক্ট মডেলে (CRS309, CRS326 ইত্যাদি) ফিজিক্যাল কনসোল পোর্ট নাও থাকতে পারে — তখন প্রথমবার <strong style="color:var(--cyan)">Winbox</strong> (MikroTik-এর নিজস্ব GUI টুল, MAC অ্যাড্রেস দিয়েও কানেক্ট করা যায়, IP লাগে না) দিয়ে অ্যাক্সেস করতে হবে। কনসোল থাকলে PuTTY সেটিংস —</p>
+      <table class="kv-table">
+        <tr><td>Serial line (COM port)</td><td>ডিভাইস ম্যানেজার থেকে দেখে নিন</td></tr>
+        <tr><td>Speed (baud rate)</td><td><strong style="color:var(--amber)">115200</strong> (BDCOM-এর 9600 থেকে আলাদা)</td></tr>
+        <tr><td>Data bits</td><td>8</td></tr>
+        <tr><td>Parity</td><td>None</td></tr>
+        <tr><td>Stop bits</td><td>1</td></tr>
+        <tr><td>Flow control</td><td><strong style="color:var(--amber)">Hardware (RTS/CTS)</strong></td></tr>
+      </table>
+      <div class="warn-box">কনসোল পোর্ট না থাকা মডেলে Winbox বা SSH/WebFig-ই একমাত্র পথ। Winbox ডাউনলোড: mikrotik.com</div>
+    </div>
+
+    <div class="info-block">
+      <h4>② ডিফল্ট লগইন ক্রেডেনশিয়াল</h4>
+      <table class="kv-table">
+        <tr><td>Username</td><td>admin</td></tr>
+        <tr><td>Password</td><td><strong style="color:var(--amber)">ফাঁকা/blank</strong> (BDCOM-এর "admin" থেকে আলাদা)</td></tr>
+        <tr><td>Enable/Privileged মোড</td><td>নেই — RouterOS-এ লগইনের পরই ফুল অ্যাক্সেস</td></tr>
+      </table>
+      <p>লগইনের পর প্রম্পট <code style="color:var(--cyan)">[admin@MikroTik] &gt;</code> দেখাবে। নতুন RouterOS-এ (v6.43+) প্রথম লগইনেই নতুন পাসওয়ার্ড সেট করতে বলতে পারে।</p>
+      <div class="warn-box">⚠️ ফ্যাক্টরি রিসেট করা ইউনিটে admin/blank কাজ করবে, প্রি-কনফিগার করা ইউনিটে বদলানো থাকতে পারে।</div>
+    </div>
+
+    <div class="info-block">
+      <h4>③ Telnet / SSH / Winbox</h4>
+      <table class="kv-table">
+        <tr><td>SSH</td><td>TCP পোর্ট 22 — ডিফল্টে চালু</td></tr>
+        <tr><td>Telnet</td><td>TCP পোর্ট 23 — নতুন RouterOS-এ ডিফল্টে বন্ধ থাকতে পারে</td></tr>
+        <tr><td>Winbox</td><td>TCP পোর্ট 8291 — সবচেয়ে বেশি ব্যবহৃত, MAC দিয়েও কানেক্ট করা যায়</td></tr>
+      </table>
+    </div>
+
+    <div class="info-block">
+      <h4>④ ওয়েব GUI (WebFig) — অ্যাক্সেস</h4>
+      <div class="warn-box" style="border-left-color:var(--cyan); margin-bottom:10px;">MikroTik-এর ওয়েব GUI-কে বলা হয় WebFig। ⚠️ <strong style="color:var(--text)">ফ্যাক্টরি ডিফল্ট</strong> (রিসেট করা অবস্থায়, কনফিগ প্রয়োগের আগে) ether1 = WAN (DHCP client), ether2+ = bridge + DHCP সার্ভার 192.168.88.1/24 — এটা শুধু ফ্যাক্টরি অবস্থার কথা, আপনার বসানো IP না। <strong style="color:var(--text)">এই টুলের কনফিগ প্রয়োগ করার পর</strong> নিচের ধাপে আপনার আসল mgmt IP ব্যবহার হবে।</div>
+      <table class="kv-table">
+        <tr><td>১. কানেকশন</td><td>bridge1-এর মেম্বার কোনো পোর্টে ক্যাবল লাগান</td></tr>
+        <tr><td>২. PC-এর IP</td><td>এই IP-এর একই সাবনেটে রাখুন: <strong style="color:var(--amber)">${ipShown}</strong></td></tr>
+        <tr><td>৩. ব্রাউজার</td><td>http://${ipShown}</td></tr>
+        <tr><td>৪. লগইন</td><td>admin / (blank বা আপনার সেট করা পাসওয়ার্ড)</td></tr>
+      </table>
+      <div class="warn-box">Winbox সবসময় সবচেয়ে নির্ভরযোগ্য — IP কাজ না করলে MAC অ্যাড্রেস স্ক্যান করে সরাসরি কানেক্ট করা যায়।</div>
+    </div>`;
+}
+
+function openDeviceInfo(){
+  const seriesObj = currentSeriesList().find(s=>s.id===seriesSel.value);
+  const exactModel = document.getElementById('exactModel').value;
+  const mgmtip = document.getElementById('mgmtip').value;
+  const mgmtvlan = document.getElementById('mgmtvlan').value;
+  const p2ptypeVal = document.getElementById('p2ptype').value;
+  const mgmtmask = p2ptypeVal === 'custom' ? document.getElementById('custommask').value : maskFromCidr(parseInt(p2ptypeVal,10));
+  const modelName = exactModel || (seriesObj ? seriesObj.label : 'অনির্বাচিত');
+  const body = document.getElementById('deviceInfoBody');
+
+  document.getElementById('deviceInfoTitle').textContent = currentVendor === 'bdcom'
+    ? '📄 BDCOM Device তথ্য — PuTTY, লগইন ও ওয়েব GUI অ্যাক্সেস'
+    : '📄 MikroTik Device তথ্য — কনসোল/Winbox, লগইন ও WebFig অ্যাক্সেস';
+
+  if(currentVendor === 'bdcom' && seriesObj && UNMANAGED_IDS.includes(seriesObj.id)){
+    body.innerHTML = deviceInfoHtml_Unmanaged(modelName);
+  } else if(currentVendor === 'mikrotik' && seriesObj && SWOS_IDS.includes(seriesObj.id)){
+    body.innerHTML = deviceInfoHtml_Swos(modelName);
+  } else if(currentVendor === 'mikrotik'){
+    body.innerHTML = deviceInfoHtml_Mikrotik(modelName, mgmtip, seriesObj ? seriesObj.dnotes : '');
+  } else {
+    body.innerHTML = deviceInfoHtml_Bdcom(modelName, mgmtip, mgmtvlan, seriesObj ? seriesObj.dnotes : '', mgmtmask);
+  }
+
+  document.getElementById('deviceInfoModal').classList.add('open');
+}
+function closeDeviceInfo(){
+  document.getElementById('deviceInfoModal').classList.remove('open');
+}
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape') closeDeviceInfo();
+});
+
+function render(){
+  const active = document.activeElement;
+  let savedKey = null, savedStart = null, savedEnd = null;
+  if(active && active.dataset && active.dataset.key){
+    savedKey = active.dataset.key;
+    savedStart = active.selectionStart;
+    savedEnd = active.selectionEnd;
+  }
+
+  renderVlanList();
+  renderTrunkList();
+  renderAccessList();
+  renderOutput();
+
+  if(savedKey){
+    const el = document.querySelector(`[data-key="${savedKey}"]`);
+    if(el){
+      el.focus();
+      if(typeof savedStart === 'number' && el.setSelectionRange){
+        try{ el.setSelectionRange(savedStart, savedEnd); }catch(e){}
+      }
+    }
+  }
+}
+
+// init
+seriesSel.value = 's2900-24s8c4x';
+applySeriesPrefixes();
+render();
+</script>
+</body>
+</html>
